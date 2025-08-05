@@ -1,0 +1,307 @@
+from fastapi import FastAPI, HTTPException, Query, Body
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any, Optional
+import os
+import logging
+from clients.elasticsearch_client import ElasticSearchClient
+from config import settings
+
+# Configure logging
+logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title=settings.API_TITLE,
+    description=settings.API_DESCRIPTION,
+    version=settings.API_VERSION
+)
+
+# Initialize Elasticsearch client
+es_client = ElasticSearchClient(settings.ELASTICSEARCH_HOST)
+
+# Request/Response Models
+class DocumentModel(BaseModel):
+    title: str = Field(..., description="Document title")
+    content: str = Field(..., description="Document content")
+    author: Optional[str] = Field(None, description="Document author")
+    tags: Optional[List[str]] = Field(default_factory=list, description="Document tags")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
+
+class DocumentResponse(BaseModel):
+    id: str
+    title: str
+    content: str
+    author: Optional[str] = None
+    tags: List[str] = []
+    metadata: Dict[str, Any] = {}
+
+class SearchQuery(BaseModel):
+    query: str = Field(..., description="Search query text")
+    fields: Optional[List[str]] = Field(None, description="Fields to search in")
+    size: int = Field(settings.DEFAULT_SEARCH_SIZE, description="Number of results to return", ge=1, le=settings.MAX_SEARCH_SIZE)
+    from_: int = Field(0, description="Starting offset for pagination", ge=0, alias="from")
+
+class BulkIndexRequest(BaseModel):
+    documents: List[DocumentModel] = Field(..., description="List of documents to index")
+    index_name: str = Field(..., description="Elasticsearch index name")
+
+class IndexConfig(BaseModel):
+    index_name: str = Field(..., description="Index name")
+    mappings: Optional[Dict[str, Any]] = Field(None, description="Index mappings")
+    settings: Optional[Dict[str, Any]] = Field(None, description="Index settings")
+
+@app.get("/api/version")
+async def version():
+    """Get API version information"""
+    return {
+        "version": settings.API_VERSION,
+        "service": settings.API_TITLE,
+        "elasticsearch_host": settings.ELASTICSEARCH_HOST
+    }
+
+@app.get("/health")
+async def health_check():
+    """Check the health of the API and Elasticsearch connection"""
+    es_healthy = es_client.health_check()
+    return {
+        "status": "healthy" if es_healthy else "unhealthy",
+        "elasticsearch": "connected" if es_healthy else "disconnected",
+        "host": settings.ELASTICSEARCH_HOST
+    }
+
+# Index Management Endpoints
+@app.post("/api/indices")
+async def create_index(config: IndexConfig):
+    """Create a new Elasticsearch index with optional mappings and settings"""
+    try:
+        if es_client.index_exists(config.index_name):
+            raise HTTPException(status_code=400, detail=f"Index '{config.index_name}' already exists")
+        
+        success = es_client.create_index(
+            index_name=config.index_name,
+            mapping=config.mappings,
+            settings=config.settings
+        )
+        
+        if success:
+            return {"message": f"Index '{config.index_name}' created successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create index")
+    except Exception as e:
+        logger.error(f"Error creating index: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/indices/{index_name}/exists")
+async def check_index_exists(index_name: str):
+    """Check if an index exists"""
+    exists = es_client.index_exists(index_name)
+    return {"index_name": index_name, "exists": exists}
+
+@app.delete("/api/indices/{index_name}")
+async def delete_index(index_name: str):
+    """Delete an Elasticsearch index"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        success = es_client.delete_index(index_name)
+        if success:
+            return {"message": f"Index '{index_name}' deleted successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete index")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting index: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Document Management Endpoints
+@app.post("/api/documents/{index_name}")
+async def index_document(index_name: str, document: DocumentModel, doc_id: Optional[str] = None):
+    """Index a single document"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        doc_dict = document.model_dump()
+        response = es_client.index_document(index_name, doc_dict, doc_id)
+        
+        return {
+            "message": "Document indexed successfully",
+            "document_id": response["_id"],
+            "result": response["result"]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error indexing document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/documents/bulk")
+async def bulk_index_documents(request: BulkIndexRequest):
+    """Bulk index multiple documents"""
+    try:
+        if not es_client.index_exists(request.index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{request.index_name}' not found")
+        
+        documents = [doc.model_dump() for doc in request.documents]
+        result = es_client.bulk_index_documents(request.index_name, documents)
+        
+        return {
+            "message": "Bulk indexing completed",
+            "success_count": result["success_count"],
+            "failed_count": result["failed_count"],
+            "failed_items": result["failed_items"]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error bulk indexing documents: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/documents/{index_name}/{doc_id}")
+async def get_document(index_name: str, doc_id: str):
+    """Retrieve a document by its ID"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        document = es_client.get_document(index_name, doc_id)
+        if document is None:
+            raise HTTPException(status_code=404, detail=f"Document '{doc_id}' not found")
+        
+        return {"document_id": doc_id, "document": document}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/documents/{index_name}/{doc_id}")
+async def update_document(index_name: str, doc_id: str, update_data: Dict[str, Any] = Body(...)):
+    """Update a document by its ID"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        response = es_client.update_document(index_name, doc_id, update_data)
+        
+        return {
+            "message": "Document updated successfully",
+            "document_id": doc_id,
+            "result": response["result"]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/documents/{index_name}/{doc_id}")
+async def delete_document(index_name: str, doc_id: str):
+    """Delete a document by its ID"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        success = es_client.delete_document(index_name, doc_id)
+        if success:
+            return {"message": f"Document '{doc_id}' deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail=f"Document '{doc_id}' not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Search Endpoints
+@app.post("/api/search/{index_name}")
+async def search_documents(index_name: str, search_query: SearchQuery):
+    """Search for documents using a text query"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        results = es_client.simple_search(
+            index_name=index_name,
+            search_text=search_query.query,
+            fields=search_query.fields,
+            size=search_query.size
+        )
+        
+        return {
+            "query": search_query.query,
+            "total_results": len(results),
+            "results": results
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error searching documents: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/search/{index_name}/advanced")
+async def advanced_search(index_name: str, query: Dict[str, Any] = Body(...), size: int = Query(settings.DEFAULT_SEARCH_SIZE, ge=1, le=settings.MAX_SEARCH_SIZE), from_: int = Query(0, ge=0, alias="from")):
+    """Advanced search using Elasticsearch query DSL"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        response = es_client.search_documents(index_name, query, size, from_)
+        
+        return {
+            "took": response["took"],
+            "total": response["hits"]["total"],
+            "max_score": response["hits"]["max_score"],
+            "hits": [
+                {
+                    "id": hit["_id"],
+                    "score": hit["_score"],
+                    "source": hit["_source"]
+                }
+                for hit in response["hits"]["hits"]
+            ]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error performing advanced search: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/documents/{index_name}/count")
+async def count_documents(index_name: str):
+    """Count total number of documents in an index"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        count = es_client.count_documents(index_name)
+        return {"index_name": index_name, "document_count": count}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error counting documents: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/indices/{index_name}/refresh")
+async def refresh_index(index_name: str):
+    """Refresh an index to make recent changes searchable"""
+    try:
+        if not es_client.index_exists(index_name):
+            raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
+        
+        success = es_client.refresh_index(index_name)
+        if success:
+            return {"message": f"Index '{index_name}' refreshed successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to refresh index")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error refreshing index: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host=settings.HOST, port=settings.PORT)

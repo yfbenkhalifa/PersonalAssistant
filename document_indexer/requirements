@@ -1,0 +1,5 @@
+fastapi[standard]
+pydantic
+elasticsearch
+uvicorn[standard]
+requests
