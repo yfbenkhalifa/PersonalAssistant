@@ -1,5 +1,6 @@
+from text_encoder import encode_text
 from dto import DocumentModel, IndexConfig
-from requests import BulkIndexRequest, SearchQuery
+from request_models import BulkIndexRequest, SearchQuery
 from fastapi import FastAPI, HTTPException, Query, Body
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
@@ -91,7 +92,8 @@ async def index_document(index_name: str, document: DocumentModel, doc_id: Optio
             raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
         
         doc_dict = document.model_dump()
-        response = es_client.index_document(index_name, doc_dict, doc_id)
+        embeddings = encode_text(document.content) if hasattr(document, 'content') else None
+        response = es_client.index_document(index_name, doc_dict, doc_id, embeddings=embeddings)
         
         return {
             "message": "Document indexed successfully",

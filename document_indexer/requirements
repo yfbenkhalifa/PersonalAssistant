@@ -4,3 +4,6 @@ elasticsearch
 uvicorn[standard]
 requests
 loguru
+transformers
+torch
+numpy

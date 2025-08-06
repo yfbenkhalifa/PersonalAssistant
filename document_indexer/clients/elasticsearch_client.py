@@ -4,6 +4,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from typing import List, Dict, Any, Optional, Union
 from loguru import logger
+import numpy as np
 
 
 class ElasticSearchClient:
@@ -14,7 +15,8 @@ class ElasticSearchClient:
         :param host: Elasticsearch host URL (e.g., 'localhost:9200' or 'https://es-cluster:9200')
         """
         elastic_password = os.getenv("ELASTICSEARCH_PASSWORD")
-        self.client = Elasticsearch(host, basic_auth=("elastic", elastic_password))
+        elastic_username = os.getenv("ELASTICSEARCH_USERNAME", "elastic")
+        self.client = Elasticsearch(host, basic_auth=(elastic_username, elastic_password))
         
         self.host = host
 
@@ -80,7 +82,7 @@ class ElasticSearchClient:
             logger.error(f"Failed to delete index '{index_name}': {e}")
             return False
 
-    def index_document(self, index_name: str, document: Dict[str, Any], doc_id: Optional[str] = None) -> Dict[str, Any]:
+    def index_document(self, index_name: str, document: Dict[str, Any], doc_id: Optional[str] = None, embeddings: Optional[np.ndarray] = None) -> Dict[str, Any]:
         """
         Index a single document in the specified Elasticsearch index.
 
@@ -93,6 +95,13 @@ class ElasticSearchClient:
             kwargs = {'index': index_name, 'body': document}
             if doc_id:
                 kwargs['id'] = doc_id
+            
+            if embeddings is not None:
+                if not isinstance(embeddings, np.ndarray):
+                    raise ValueError("Embeddings must be a numpy ndarray")
+                if embeddings.ndim != 1:
+                    raise ValueError("Embeddings must be a 1-dimensional array")
+                kwargs['body']['text_embedding_2'] = embeddings.tolist() 
                 
             response = self.client.index(**kwargs)
             if response.get('result') not in ['created', 'updated']:

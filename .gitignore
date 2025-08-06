@@ -201,3 +201,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+document_indexer/__pycache__/config.cpython-312.pyc
+document_indexer/clients/__pycache__/elasticsearch_client.cpython-312.pyc
