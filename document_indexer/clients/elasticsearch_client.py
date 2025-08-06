@@ -1,10 +1,9 @@
 
+import os
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from typing import List, Dict, Any, Optional, Union
-import logging
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class ElasticSearchClient:
@@ -14,7 +13,9 @@ class ElasticSearchClient:
         
         :param host: Elasticsearch host URL (e.g., 'localhost:9200' or 'https://es-cluster:9200')
         """
-        self.client = Elasticsearch(host)
+        elastic_password = os.getenv("ELASTICSEARCH_PASSWORD")
+        self.client = Elasticsearch(host, basic_auth=("elastic", elastic_password))
+        
         self.host = host
 
     def health_check(self) -> bool:
@@ -46,7 +47,7 @@ class ElasticSearchClient:
             if settings:
                 body['settings'] = settings
                 
-            response = self.client.indices.create(index=index_name, body=body if body else None)
+            response = self.client.indices.create(index=index_name)
             logger.info(f"Index '{index_name}' created successfully")
             return response.get('acknowledged', False)
         except Exception as e:

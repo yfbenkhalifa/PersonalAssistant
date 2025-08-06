@@ -9,7 +9,7 @@ class Settings:
     """Application settings"""
     
     # Elasticsearch configuration
-    ELASTICSEARCH_HOST: str = os.getenv("ELASTICSEARCH_HOST", "http://localhost:9200")
+    ELASTICSEARCH_HOST: str = os.getenv("ELASTICSEARCH_HOST", "https://localhost:9200")
     
     # API configuration
     API_TITLE: str = "Document Indexer API"

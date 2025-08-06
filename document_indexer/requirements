@@ -3,3 +3,4 @@ pydantic
 elasticsearch
 uvicorn[standard]
 requests
+loguru

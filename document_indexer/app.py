@@ -1,14 +1,12 @@
+from dto import DocumentModel, IndexConfig
+from requests import BulkIndexRequest, SearchQuery
 from fastapi import FastAPI, HTTPException, Query, Body
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import os
-import logging
+from loguru import logger
 from clients.elasticsearch_client import ElasticSearchClient
 from config import settings
-
-# Configure logging
-logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
-logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.API_TITLE,
@@ -18,37 +16,6 @@ app = FastAPI(
 
 # Initialize Elasticsearch client
 es_client = ElasticSearchClient(settings.ELASTICSEARCH_HOST)
-
-# Request/Response Models
-class DocumentModel(BaseModel):
-    title: str = Field(..., description="Document title")
-    content: str = Field(..., description="Document content")
-    author: Optional[str] = Field(None, description="Document author")
-    tags: Optional[List[str]] = Field(default_factory=list, description="Document tags")
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
-
-class DocumentResponse(BaseModel):
-    id: str
-    title: str
-    content: str
-    author: Optional[str] = None
-    tags: List[str] = []
-    metadata: Dict[str, Any] = {}
-
-class SearchQuery(BaseModel):
-    query: str = Field(..., description="Search query text")
-    fields: Optional[List[str]] = Field(None, description="Fields to search in")
-    size: int = Field(settings.DEFAULT_SEARCH_SIZE, description="Number of results to return", ge=1, le=settings.MAX_SEARCH_SIZE)
-    from_: int = Field(0, description="Starting offset for pagination", ge=0, alias="from")
-
-class BulkIndexRequest(BaseModel):
-    documents: List[DocumentModel] = Field(..., description="List of documents to index")
-    index_name: str = Field(..., description="Elasticsearch index name")
-
-class IndexConfig(BaseModel):
-    index_name: str = Field(..., description="Index name")
-    mappings: Optional[Dict[str, Any]] = Field(None, description="Index mappings")
-    settings: Optional[Dict[str, Any]] = Field(None, description="Index settings")
 
 @app.get("/api/version")
 async def version():
