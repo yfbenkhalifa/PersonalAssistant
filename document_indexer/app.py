@@ -16,7 +16,8 @@ app = FastAPI(
 )
 
 # Initialize Elasticsearch client
-es_client = ElasticSearchClient(settings.ELASTICSEARCH_HOST)
+es_client = ElasticSearchClient(settings.ELASTICSEARCH_HOST, settings.ELASTICSEARCH_PORT,
+                                settings.ELASTICSEARCH_USERNAME, settings.ELASTICSEARCH_PASSWORD)
 
 @app.get("/api/version")
 async def version():
@@ -105,6 +106,22 @@ async def index_document(index_name: str, document: DocumentModel, doc_id: Optio
     except Exception as e:
         logger.error(f"Error indexing document: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/documents/chunk_document")
+async def chunk_document(content: str):
+    from clients.llm_client import AgenticDocumentChunker
+    """Chunk a document using the AgenticDocumentChunker"""
+
+    host = settings.AGENTIC_DOCUMENT_CHUNKER_HOST
+    port = settings.AGENTIC_DOCUMENT_CHUNKER_PORT
+    api_key = settings.AGENTIC_DOCUMENT_CHUNKER_API_KEY
+    document_chunker = AgenticDocumentChunker(host=host, port=port, api_key=api_key)
+    
+    if not content:
+        raise HTTPException(status_code=400, detail="Content cannot be empty")
+
+    chunked_documents = document_chunker.chunk_document(content)
+    return {"chunked_documents": chunked_documents}
 
 @app.post("/api/documents/bulk")
 async def bulk_index_documents(request: BulkIndexRequest):

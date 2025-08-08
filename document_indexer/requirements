@@ -7,3 +7,5 @@ loguru
 transformers
 torch
 numpy
+langchain
+langchain_openai

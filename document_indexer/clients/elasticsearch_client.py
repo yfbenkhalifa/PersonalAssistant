@@ -8,17 +8,17 @@ import numpy as np
 
 
 class ElasticSearchClient:
-    def __init__(self, host: str) -> None:
+    def __init__(self, host: str, port: int, user: str, password: str) -> None:
         """
         Initialize the Elasticsearch client.
         
         :param host: Elasticsearch host URL (e.g., 'localhost:9200' or 'https://es-cluster:9200')
         """
-        elastic_password = os.getenv("ELASTICSEARCH_PASSWORD")
-        elastic_username = os.getenv("ELASTICSEARCH_USERNAME", "elastic")
-        self.client = Elasticsearch(host, basic_auth=(elastic_username, elastic_password))
+        self.client = Elasticsearch(f"{host}:{port}", basic_auth=(user, password))
         
         self.host = host
+        self.port = port
+        self.user = user
 
     def health_check(self) -> bool:
         """

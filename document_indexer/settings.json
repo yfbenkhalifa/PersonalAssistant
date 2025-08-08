@@ -1,11 +1,18 @@
 {
-    "elasticsearch": {
+    "elasticsearch_settings": {
         "host": "http://localhost",
-        "port": 9200
+        "port": 9200,
+        "username": "wiz"
     },
     "text_embedding_model": {
         "hf_id" : "Qwen/Qwen3-Embedding-8B",
         "model_type": "hf",
         "dimensions": 4096
+    },
+    "chunk_agent_model":{
+        "model_type": "local",
+        "host": "http://172.25.112.1",
+        "port": 25000,
+        "api_key": "none"
     }
 }
