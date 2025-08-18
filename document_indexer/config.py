@@ -45,5 +45,7 @@ class Settings:
     AGENTIC_DOCUMENT_CHUNKER_PORT: int = int(settings_dict["chunk_agent_model"]["port"])
     AGENTIC_DOCUMENT_CHUNKER_API_KEY: Optional[str] = os.getenv("AGENTIC_DOCUMENT_CHUNKER_API_KEY", settings_dict["chunk_agent_model"].get("api_key", None))
 
+    MAX_DOCUMENT_LENGTH: int = int(settings_dict.get("max_document_length", os.getenv("MAX_DOCUMENT_LENGTH", "4096")))
+
 # Global settings instance
 settings = Settings()

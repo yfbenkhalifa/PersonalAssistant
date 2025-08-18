@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from enum import Enum
 from typing import List, Optional, Type
 from pydantic import Field, BaseModel
 from langchain.callbacks.manager import CallbackManagerForToolRun
@@ -11,19 +12,11 @@ from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputP
 from langchain.agents import AgentExecutor
 from langchain_openai import ChatOpenAI
 
-class DocumentChunker:
-    @abstractmethod
-    def chunk_document(self, content: str) -> List[str]:
-        """
-        Splits the document content into smaller chunks for processing.
-        
-        Args:
-            content (str): The full content of the document.
-            
-        Returns:
-            List[str]: A list of content chunks.
-        """
-        pass
+from document_chunking.document_chunker import DocumentChunker
+
+class DocumentChunkResult:
+    output: str
+    messages: List[str]
 
 
 class AgenticDocumentChunker(DocumentChunker):
@@ -37,11 +30,15 @@ class AgenticDocumentChunker(DocumentChunker):
                 "1. Maintain semantic coherence - keep related ideas together\n"
                 "2. Respect natural boundaries like paragraphs, sections, and logical breaks\n"
                 "3. Ensure each chunk is self-contained and meaningful\n"
-                "4. Consider the document type and structure (e.g., academic papers, reports, stories)\n"
+                "4. Consider the document type and structure\n"
                 "5. Aim for chunks that are neither too small (losing context) nor too large (overwhelming)\n\n"
-                "Use the available tools to process and chunk the document content effectively. Return a json of well-structured chunks that maintain the document's logical flow and meaning.",
+                "Document Type Specific Guidelines:\n"
+                "- CHAT: Preserve conversational flow, group related exchanges, maintain speaker context\n"
+                "- GENERIC_DOCUMENT: Follow document structure (headings, sections, paragraphs), maintain logical flow\n\n"
+                "IMPORTANT: You must return a valid JSON array where each entry specifies the chunk_id and the content of the chunk."
+                "DOT NOT INCLUDE ANY ADDITIONAL TEXT OR EXPLANATION OF THE THOUGHT PROCESS Only return the JSON array, no additional text or explanation.",
             ),
-            ("user", "{input}"),
+            ("user", "Document Type: {content_type}\n\nContent to chunk:\n{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ]
     )   
@@ -69,20 +66,19 @@ class AgenticDocumentChunker(DocumentChunker):
         Returns:
             List[str]: A list of content chunks.
         """
-        # Here you would implement the logic to chunk the document
-        # For simplicity, we return a list with the original content
         agent = (
             {
                 "input": lambda x: x["input"],
+                "content_type": lambda x: x["content_type"],
                 "agent_scratchpad": lambda x: format_to_openai_tool_messages(
                     x["intermediate_steps"]
                 ),
             } | self.prompt | self.llm | OpenAIToolsAgentOutputParser()
         )
         agent_executor = AgentExecutor(agent=agent, verbose=True, tools=[])
-        list(agent_executor.stream(
-            {"input": "what is the length of characters in the word eudca"}))
+        result = list(agent_executor.stream(
+            {"input": content, "content_type": DocumentContentType.GENERIC_DOCUMENT.value}))[0]
         
-        return ["Chunk 1: " + content[:len(content)//2], "Chunk 2: " + content[len(content)//2:]]
+        return result['output']
 
 

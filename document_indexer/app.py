@@ -1,3 +1,4 @@
+from document_chunking.dumb_document_chunker import DumbDocumentChunker
 from text_encoder import encode_text
 from dto import DocumentModel, IndexConfig
 from request_models import BulkIndexRequest, SearchQuery
@@ -88,13 +89,17 @@ async def delete_index(index_name: str):
 @app.post("/api/documents/{index_name}")
 async def index_document(index_name: str, document: DocumentModel, doc_id: Optional[str] = None):
     """Index a single document"""
+    document_chunker = DumbDocumentChunker(settings.MAX_DOCUMENT_LENGTH)
+    document_chunks = [document_chunker.chunk_document(document.content)]
     try:
         if not es_client.index_exists(index_name):
             raise HTTPException(status_code=404, detail=f"Index '{index_name}' not found")
         
         doc_dict = document.model_dump()
-        embeddings = encode_text(document.content) if hasattr(document, 'content') else None
-        response = es_client.index_document(index_name, doc_dict, doc_id, embeddings=embeddings)
+        for chunk in document_chunks:
+            embeddings = encode_text(chunk)
+            doc_dict["content"] = chunk
+            response = es_client.index_document(index_name, doc_dict, doc_id, embeddings=embeddings)
         
         return {
             "message": "Document indexed successfully",
@@ -115,13 +120,13 @@ async def chunk_document(content: str):
     host = settings.AGENTIC_DOCUMENT_CHUNKER_HOST
     port = settings.AGENTIC_DOCUMENT_CHUNKER_PORT
     api_key = settings.AGENTIC_DOCUMENT_CHUNKER_API_KEY
-    document_chunker = AgenticDocumentChunker(host=host, port=port, api_key=api_key)
+    document_chunker = DumbDocumentChunker(4096)
     
     if not content:
         raise HTTPException(status_code=400, detail="Content cannot be empty")
 
-    chunked_documents = document_chunker.chunk_document(content)
-    return {"chunked_documents": chunked_documents}
+    result = document_chunker.chunk_document(content)
+    return result
 
 @app.post("/api/documents/bulk")
 async def bulk_index_documents(request: BulkIndexRequest):
