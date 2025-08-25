@@ -1,8 +1,7 @@
 {
     "configurations": [
-
         {
-            "name": "Python Debugger: FastAPI",
+            "name": "Debug Document Indexer",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
@@ -12,6 +11,20 @@
             ],
             "python": "C:/Users/WiZ/miniconda3/envs/py312/python.exe",
             "cwd": "${workspaceFolder}/document_indexer",
+            "jinja": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug ChatWiZPT API",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app:app",
+                "--reload"
+            ],
+            "python": "C:/Users/WiZ/miniconda3/envs/py312/python.exe",
+            "cwd": "${workspaceFolder}",
             "jinja": true,
             "console": "integratedTerminal"
         }

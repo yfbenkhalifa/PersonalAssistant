@@ -3,3 +3,5 @@ fastapi
 numpy
 uvicorn
 langgraph
+langchain-anthropic
+langchain[openai]
