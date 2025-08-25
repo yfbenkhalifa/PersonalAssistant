@@ -1,6 +1,5 @@
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
-from config import settings
 from dto import DocumentModel
 
 class DocumentResponse(BaseModel):

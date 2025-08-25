@@ -1,6 +1,5 @@
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
-from config import settings
 
 class DocumentModel(BaseModel):
     title: str = Field(..., description="Document title")

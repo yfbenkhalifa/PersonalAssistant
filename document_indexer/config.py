@@ -18,7 +18,7 @@ class Settings:
     ELASTICSEARCH_HOST: str = settings_dict["elasticsearch_settings"]["host"]
     ELASTICSEARCH_PORT: int = int(settings_dict["elasticsearch_settings"]["port"])
     ELASTICSEARCH_USERNAME: str = settings_dict["elasticsearch_settings"]["username"]
-    ELASTICSEARCH_PASSWORD: Optional[str] = os.getenv("ELASTICSEARCH_PASSWORD", settings_dict["elasticsearch_settings"].get("password", None))
+    ELASTICSEARCH_PASSWORD: Optional[str] = os.getenv("ELASTICSEARCH_PASSWORD", settings_dict["elasticsearch_settings"].get("password", ""))
     
     # API configuration
     API_TITLE: str = settings_dict.get("api_title", "Document Indexer API")
