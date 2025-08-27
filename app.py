@@ -4,7 +4,7 @@ from global_settings import global_settings
 from langgraph.prebuilt import create_react_agent
 import chatbot.state_graph as state_graph
 from langgraph.graph import StateGraph, START, END
-
+from langchain_core.messages import HumanMessage, AIMessage
 import startup
 
 graph = startup.graph
@@ -18,7 +18,7 @@ app = FastAPI(
 def stream_graph_updates(user_input: str):
     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
         for value in event.values():
-            return("Assistant:", value["messages"][-1].content)
+            yield ("Assistant:", value["messages"][-1].content)
 
     
 @app.get("/health")

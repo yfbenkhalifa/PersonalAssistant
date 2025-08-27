@@ -5,3 +5,4 @@ uvicorn
 langgraph
 langchain-anthropic
 langchain[openai]
+langchain-tavily
