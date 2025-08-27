@@ -16,9 +16,23 @@ app = FastAPI(
 )
 
 def stream_graph_updates(user_input: str):
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-        for value in event.values():
-            yield ("Assistant:", value["messages"][-1].content)
+    try:
+        response = []
+        # Create the input in the correct format for the graph
+        input_data = {"messages": [HumanMessage(content=user_input)]}
+        
+        # Stream the graph execution
+        for event in graph.stream(input_data):
+            for value in event.values():
+                if "messages" in value and value["messages"]:
+                    last_message = value["messages"][-1]
+                    if isinstance(last_message, AIMessage):
+                        response.append(last_message.content)
+        
+        return response
+    except Exception as e:
+        return [f"Error processing request: {str(e)}"]
+
 
     
 @app.get("/health")
@@ -29,7 +43,8 @@ async def health_check():
 async def invoke(query: str):
     user_input = query
     result = stream_graph_updates(user_input)
-    return {"response": result}
+    last_message = result[-1] if result else ""
+    return {"response": last_message}
 
 if __name__ == "__main__":
     import uvicorn
