@@ -2,8 +2,10 @@ import json
 from langchain_core.tools import tool
 
 from langchain_core.messages import ToolMessage
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import END
 from chatbot.state_graph import State
+
+from server import startup
 
 
 class BasicToolNode:
@@ -50,7 +52,30 @@ def route_tools(
     return END
 
 
-@tool
+@tool("Return length of user query")
 def query_lenght(query: str) -> int:
-    """Multiply two numbers."""
+    """Return length of user query"""
     return len(query)
+
+@tool("Search in the indexed documents database")
+def search_indexed_documents(query: str) -> str:
+    """Search for documents, whatsapp conversations or personal information stored in in the indexed database"""
+    es_client = startup.elasticsearch_client
+    try:
+        response = es_client.client.search(
+            index="whatsapp_chats",
+            body={
+                "query": {
+                    "match": {
+                        "content": query
+                    }
+                }
+            }
+        )
+        result = []
+        for hit in response.get("hits", {}).hits:
+            result.append(hit["_source"])
+        return result
+    except Exception as e:
+        print(f"Error searching indexed documents: {e}")
+        return None

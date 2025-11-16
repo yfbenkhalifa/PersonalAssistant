@@ -5,20 +5,31 @@ from elasticsearch.helpers import bulk
 from typing import List, Dict, Any, Optional, Union
 from loguru import logger
 import numpy as np
+from exceptions.serverExceptions import ServerException
 
 
 class ElasticSearchClient:
-    def __init__(self, host: str, port: int, user: str, password: str) -> None:
+    def __init__(self, host: str, port: int, api_key: str = None, user: str = None, password: str = None) -> None:
         """
         Initialize the Elasticsearch client.
         
         :param host: Elasticsearch host URL (e.g., 'localhost:9200' or 'https://es-cluster:9200')
         """
-        self.client = Elasticsearch(f"{host}:{port}", basic_auth=(user, password))
-        
-        self.host = host
-        self.port = port
-        self.user = user
+        self.logger = logger.bind(app=self)
+
+        if api_key and api_key != "":
+            self.api_key = api_key
+            try:
+                self.client = Elasticsearch(f"{host}:{port}", api_key=self.api_key)
+                self.client.info()
+            except Exception as e: #TODO: define custom exception
+                self.logger.error(f"Failed to create Elasticsearch client: {e}")
+                raise ServerException(f"Failed to create Elasticsearch client: {e}")
+        else: 
+            try:
+                self.client = Elasticsearch(f"{host}:{port}", basic_auth=(user, password))
+            except Exception as e: #TODO: define custom exception
+                self.logger.error(f"Failed to create Elasticsearch client: {e}")
 
     def health_check(self) -> bool:
         """
@@ -29,8 +40,8 @@ class ElasticSearchClient:
         try:
             health = self.client.cluster.health()
             return health['status'] in ['green', 'yellow']
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Health check failed: {e}")
             return False
 
     def create_index(self, index_name: str, mapping: Optional[Dict] = None, settings: Optional[Dict] = None) -> bool:
@@ -50,10 +61,10 @@ class ElasticSearchClient:
                 body['settings'] = settings
                 
             response = self.client.indices.create(index=index_name)
-            logger.info(f"Index '{index_name}' created successfully")
+            self.logger.info(f"Index '{index_name}' created successfully")
             return response.get('acknowledged', False)
-        except Exception as e:
-            logger.error(f"Failed to create index '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to create index '{index_name}': {e}")
             return False
 
     def index_exists(self, index_name: str) -> bool:
@@ -75,11 +86,11 @@ class ElasticSearchClient:
         try:
             if self.index_exists(index_name):
                 response = self.client.indices.delete(index=index_name)
-                logger.info(f"Index '{index_name}' deleted successfully")
+                self.logger.info(f"Index '{index_name}' deleted successfully")
                 return response.get('acknowledged', False)
             return True
-        except Exception as e:
-            logger.error(f"Failed to delete index '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to delete index '{index_name}': {e}")
             return False
 
     def index_document(self, index_name: str, document: Dict[str, Any], doc_id: Optional[str] = None, embeddings: Optional[np.ndarray] = None) -> Dict[str, Any]:
@@ -107,8 +118,8 @@ class ElasticSearchClient:
             if response.get('result') not in ['created', 'updated']:
                 raise Exception(f"Unexpected result: {response.get('result')}")
             return response
-        except Exception as e:
-            logger.error(f"Failed to index document in '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to index document in '{index_name}': {e}")
             raise
 
     def bulk_index_documents(self, index_name: str, documents: List[Dict[str, Any]], doc_id_field: Optional[str] = None) -> Dict[str, Any]:
@@ -140,13 +151,13 @@ class ElasticSearchClient:
             }
             
             if failed_items:
-                logger.warning(f"Bulk indexing completed with {len(failed_items)} failures")
+                self.logger.warning(f"Bulk indexing completed with {len(failed_items)} failures")
             else:
-                logger.info(f"Successfully bulk indexed {success_count} documents to '{index_name}'")
+                self.logger.info(f"Successfully bulk indexed {success_count} documents to '{index_name}'")
                 
             return result
-        except Exception as e:
-            logger.error(f"Failed to bulk index documents to '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to bulk index documents to '{index_name}': {e}")
             raise
 
     def get_document(self, index_name: str, doc_id: str) -> Optional[Dict[str, Any]]:
@@ -160,8 +171,8 @@ class ElasticSearchClient:
         try:
             response = self.client.get(index=index_name, id=doc_id)
             return response['_source'] if response['found'] else None
-        except Exception as e:
-            logger.error(f"Failed to get document '{doc_id}' from '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to get document '{doc_id}' from '{index_name}': {e}")
             return None
 
     def update_document(self, index_name: str, doc_id: str, update_doc: Dict[str, Any]) -> Dict[str, Any]:
@@ -180,8 +191,8 @@ class ElasticSearchClient:
                 body={'doc': update_doc}
             )
             return response
-        except Exception as e:
-            logger.error(f"Failed to update document '{doc_id}' in '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to update document '{doc_id}' in '{index_name}': {e}")
             raise
 
     def delete_document(self, index_name: str, doc_id: str) -> bool:
@@ -195,8 +206,8 @@ class ElasticSearchClient:
         try:
             response = self.client.delete(index=index_name, id=doc_id)
             return response.get('result') == 'deleted'
-        except Exception as e:
-            logger.error(f"Failed to delete document '{doc_id}' from '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to delete document '{doc_id}' from '{index_name}': {e}")
             return False
 
     def search_documents(self, index_name: str, query: Dict[str, Any], size: int = 10, from_: int = 0) -> Dict[str, Any]:
@@ -217,8 +228,8 @@ class ElasticSearchClient:
                 from_=from_
             )
             return response
-        except Exception as e:
-            logger.error(f"Failed to search in '{index_name}': {e}")
+        except Exception as e: #TODO: define custom exception
+            self.logger.error(f"Failed to search in '{index_name}': {e}")
             raise
 
     def simple_search(self, index_name: str, search_text: str, fields: List[str] = None, size: int = 10) -> List[Dict[str, Any]]:
@@ -248,8 +259,8 @@ class ElasticSearchClient:
             
             response = self.search_documents(index_name, query, size)
             return [hit['_source'] for hit in response['hits']['hits']]
-        except Exception as e:
-            logger.error(f"Failed to perform simple search in '{index_name}': {e}")
+        except Exception as e:#TODO: define custom exception
+            self.logger.error(f"Failed to perform simple search in '{index_name}': {e}")
             raise
 
     def count_documents(self, index_name: str, query: Optional[Dict[str, Any]] = None) -> int:
@@ -264,8 +275,8 @@ class ElasticSearchClient:
             body = {'query': query} if query else None
             response = self.client.count(index=index_name, body=body)
             return response['count']
-        except Exception as e:
-            logger.error(f"Failed to count documents in '{index_name}': {e}")
+        except Exception as e:#TODO: define custom exception
+            self.logger.error(f"Failed to count documents in '{index_name}': {e}")
             return 0
 
     def refresh_index(self, index_name: str) -> bool:
@@ -278,7 +289,7 @@ class ElasticSearchClient:
         try:
             response = self.client.indices.refresh(index=index_name)
             return not response.get('_shards', {}).get('failed', 0)
-        except Exception as e:
-            logger.error(f"Failed to refresh index '{index_name}': {e}")
+        except Exception as e:  #TODO: define custom exception
+            self.logger.error(f"Failed to refresh index '{index_name}': {e}")
             return False
 
