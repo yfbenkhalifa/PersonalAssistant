@@ -6,4 +6,4 @@ langgraph
 langchain-anthropic
 langchain[openai]
 langchain-tavily
-yaml
+pyyaml
