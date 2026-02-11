@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Callable
 from langchain.chat_models import init_chat_model, BaseChatModel
 from langchain_tavily import TavilySearch
 from langgraph.checkpoint.memory import MemorySaver
@@ -51,6 +52,10 @@ class Agent:
         self.history = result['messages']
         response = self.history[-1]
         return response
+    
+    def add_tool(self, tool: Callable) -> None:
+        
+        pass
     
     @staticmethod
     def init_azure_openai_model(llm_config: AzureOpenAiModelConfig) -> BaseChatModel:

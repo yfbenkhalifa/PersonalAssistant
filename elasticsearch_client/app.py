@@ -1,14 +1,15 @@
-from .document_chunking.dumb_document_chunker import DumbDocumentChunker
-from .text_encoder import encode_text
-from .dto import DocumentModel, IndexConfig
-from .request_models import BulkIndexRequest, SearchQuery
+from document_chunking.dumb_document_chunker import DumbDocumentChunker
+from text_encoder import encode_text
+from dto import DocumentModel, IndexConfig
+from request_models import BulkIndexRequest, SearchQuery
 from fastapi import FastAPI, HTTPException, Query, Body
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import os
 from loguru import logger
-from .clients.elasticsearch_client import ElasticSearchClient
-from .config import settings
+from clients.elasticsearch_client import ElasticSearchClient
+
+from appSettings import AppSettings as settings
 
 app = FastAPI(
     title=settings.API_TITLE,
@@ -17,8 +18,8 @@ app = FastAPI(
 )
 
 # Initialize Elasticsearch client
-es_client = ElasticSearchClient(settings.ELASTICSEARCH_HOST, settings.ELASTICSEARCH_PORT,
-                                settings.ELASTICSEARCH_USERNAME, settings.ELASTICSEARCH_PASSWORD)
+es_client = ElasticSearchClient(host=settings.ELASTICSEARCH_HOST, port=settings.ELASTICSEARCH_PORT,
+                                user=settings.ELASTICSEARCH_USERNAME, api_key=settings.ELASTICSEARCH_API_KEY)
 
 @app.get("/api/version")
 async def version():

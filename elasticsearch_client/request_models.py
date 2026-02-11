@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
-from config import settings
 from dto import DocumentModel
+from appSettings import AppSettings as settings
 
 class SearchQuery(BaseModel):
     query: str = Field(..., description="Search query text")

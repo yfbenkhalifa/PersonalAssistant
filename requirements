@@ -7,3 +7,4 @@ langchain-anthropic
 langchain[openai]
 langchain-tavily
 pyyaml
+loguru

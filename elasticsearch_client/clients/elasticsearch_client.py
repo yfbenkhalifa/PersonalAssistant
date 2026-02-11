@@ -9,25 +9,36 @@ from exceptions.serverExceptions import ServerException
 
 
 class ElasticSearchClient:
-    def __init__(self, host: str, port: int, api_key: str = None, user: str = None, password: str = None) -> None:
+    def __init__(self, host: str, port: int, api_key: str = None, user: str = None, password: str = None, verify_certs: bool = False) -> None:
         """
         Initialize the Elasticsearch client.
         
         :param host: Elasticsearch host URL (e.g., 'localhost:9200' or 'https://es-cluster:9200')
+        :param verify_certs: Whether to verify SSL certificates (default: False for development with self-signed certs)
         """
         self.logger = logger.bind(app=self)
 
         if api_key and api_key != "":
             self.api_key = api_key
             try:
-                self.client = Elasticsearch(f"{host}:{port}", api_key=self.api_key)
+                self.client = Elasticsearch(
+                    hosts=[f"https://localhost:9200"], 
+                    api_key=self.api_key,
+                    verify_certs=verify_certs,
+                    ssl_show_warn=False
+                )
                 self.client.info()
             except Exception as e: #TODO: define custom exception
                 self.logger.error(f"Failed to create Elasticsearch client: {e}")
                 raise ServerException(f"Failed to create Elasticsearch client: {e}")
         else: 
             try:
-                self.client = Elasticsearch(f"{host}:{port}", basic_auth=(user, password))
+                self.client = Elasticsearch(
+                    f"{host}:{port}", 
+                    basic_auth=(user, password),
+                    verify_certs=verify_certs,
+                    ssl_show_warn=False
+                )
             except Exception as e: #TODO: define custom exception
                 self.logger.error(f"Failed to create Elasticsearch client: {e}")
 

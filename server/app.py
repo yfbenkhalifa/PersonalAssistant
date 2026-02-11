@@ -14,9 +14,9 @@ from chatbot.tools import (
 from langchain_core.messages import SystemMessage
 
 from prompts.agent_prompts import AgentPrompts
-from document_indexer.clients.elasticsearch_client import ElasticSearchClient
+from elasticsearch_client.clients.elasticsearch_client import ElasticSearchClient
 from exceptions.serverExceptions import ServerException
-from server.appSettings import AppSettings
+from elasticsearch_client.appSettings import AppSettings
 
 llm = init_chat_model(
     model="qwen/qwen3-coder-30b",

@@ -1,5 +1,20 @@
 {
     "configurations": [
+        
+        {
+            "name": "Debug ElasticSearch Client",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app:app",
+                "--reload"
+            ],
+            "python": "C:/Users/WiZ/miniconda3/envs/py312/python.exe",
+            "cwd": "${workspaceFolder}/elasticsearch_client",
+            "jinja": true,
+            "console": "integratedTerminal"
+        },
         {
             "name": "Debug App",
             "type": "debugpy",
@@ -16,7 +31,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Debug Document Indexer",
+            "name": "Run Document Indexer",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
@@ -27,7 +42,8 @@
             "python": "C:/Users/WiZ/miniconda3/envs/py312/python.exe",
             "cwd": "${workspaceFolder}/document_indexer",
             "jinja": true,
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "noDebug": true
         },
         {
             "name": "Debug ChatWiZPT API",

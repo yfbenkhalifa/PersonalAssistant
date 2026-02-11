@@ -1,23 +1,23 @@
 import os
 from typing import Optional
-import json
+import yaml
 
-json_file_path = "appSettings.json"  # Path to the JSON file for settings
-file = open(json_file_path, "r")
-settings_dict = json.load(file)
+yaml_file_path = os.path.join(os.path.dirname(__file__), "settings.yaml")  # Path to the YAML file for settings
+file = open(yaml_file_path, "r")
+settings_dict = yaml.safe_load(file)
 
 
 class AppSettings:
     """Application settings"""
 
     # Elasticsearch configuration
-    ELASTICSEARCH_HOST: str = settings_dict["elasticsearch"]["host"]
-    ELASTICSEARCH_PORT: int = int(settings_dict["elasticsearch"]["port"])
-    ELASTICSEARCH_USERNAME: str = settings_dict["elasticsearch"]["username"]
+    ELASTICSEARCH_HOST: str = settings_dict["elasticsearch_settings"]["host"]
+    ELASTICSEARCH_PORT: int = int(settings_dict["elasticsearch_settings"]["port"])
+    ELASTICSEARCH_USERNAME: str = settings_dict["elasticsearch_settings"]["username"]
     ELASTICSEARCH_PASSWORD: Optional[str] = os.getenv("ELASTICSEARCH_PASSWORD",
-                                                      settings_dict["elasticsearch"].get("password", ""))
+                                                      settings_dict["elasticsearch_settings"].get("password", ""))
     ELASTICSEARCH_API_KEY: Optional[str] = os.getenv("ELASTICSEARCH_API_KEY",
-                                                     settings_dict["elasticsearch"].get("api_key", None))
+                                                     settings_dict["elasticsearch_settings"].get("api_key", None))
     # API configuration
     API_TITLE: str = settings_dict.get("api_title", "Document Indexer API")
     API_DESCRIPTION: str = settings_dict.get("api_description",
