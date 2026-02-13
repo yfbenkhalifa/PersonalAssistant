@@ -30,7 +30,6 @@ class ElasticSearchClient:
                 self.client.info()
             except Exception as e: #TODO: define custom exception
                 self.logger.error(f"Failed to create Elasticsearch client: {e}")
-                raise ServerException(f"Failed to create Elasticsearch client: {e}")
         else: 
             try:
                 self.client = Elasticsearch(
@@ -123,7 +122,7 @@ class ElasticSearchClient:
                     raise ValueError("Embeddings must be a numpy ndarray")
                 if embeddings.ndim != 1:
                     raise ValueError("Embeddings must be a 1-dimensional array")
-                kwargs['body']['text_embedding_2'] = embeddings.tolist() 
+                kwargs['body']['encoded_content'] = embeddings.tolist() 
                 
             response = self.client.index(**kwargs)
             if response.get('result') not in ['created', 'updated']:

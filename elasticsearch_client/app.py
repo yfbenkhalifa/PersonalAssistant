@@ -1,5 +1,5 @@
 from document_chunking.dumb_document_chunker import DumbDocumentChunker
-from text_encoder import encode_text
+from text_encoder import SentenceTransformerTextEncoder
 from dto import DocumentModel, IndexConfig
 from request_models import BulkIndexRequest, SearchQuery
 from fastapi import FastAPI, HTTPException, Query, Body
@@ -20,6 +20,11 @@ app = FastAPI(
 # Initialize Elasticsearch client
 es_client = ElasticSearchClient(host=settings.ELASTICSEARCH_HOST, port=settings.ELASTICSEARCH_PORT,
                                 user=settings.ELASTICSEARCH_USERNAME, api_key=settings.ELASTICSEARCH_API_KEY)
+
+try:
+    text_encoder = SentenceTransformerTextEncoder(settings.TEXTENCODER_MODELNAME)
+except Exception as e:
+    logger.error(f"Failed to create Text encoder: {e}")
 
 @app.get("/api/version")
 async def version():
@@ -98,7 +103,7 @@ async def index_document(index_name: str, document: DocumentModel, doc_id: Optio
         
         doc_dict = document.model_dump()
         for chunk in document_chunks:
-            embeddings = encode_text(chunk)
+            embeddings = text_encoder.encode(chunk[0]['content'])
             doc_dict["content"] = chunk
             response = es_client.index_document(index_name, doc_dict, doc_id, embeddings=embeddings)
         

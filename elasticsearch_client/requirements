@@ -10,3 +10,4 @@ numpy
 langchain
 langchain_openai
 overrides
+sentence_transformers

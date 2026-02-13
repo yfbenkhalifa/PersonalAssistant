@@ -1,28 +1,18 @@
-from typing import List
+from abc import abstractmethod
+from typing import List, override
 import numpy as np
 
-def chunk_document(content: str) -> List[str]:
-    """
-    Splits the document content into smaller chunks for processing.
+class TextEncoder:
+    @abstractmethod
+    def encode(content: str) -> np.ndarray:
+        pass
     
-    Args:
-        content (str): The full content of the document.
+    
+class SentenceTransformerTextEncoder(TextEncoder):
+    def __init__(self, model_name: str) -> None:
+        from sentence_transformers import SentenceTransformer
+        self.model = SentenceTransformer(model_name)
         
-    Returns:
-        List[str]: A list of content chunks.
-    """
-    from llm_client import encode_text
-
-
-
-def encode_text(input: str) -> np.ndarray:
-    from sentence_transformers import SentenceTransformer
-    import torch
-    # Load pre-trained model and tokenizer
-    model_name = "Qwen/Qwen3-Embedding-8B"
-    model = SentenceTransformer("Qwen/Qwen3-Embedding-8B")
-
-    # Tokenize and encode
-    embeddings = model.encode(input, prompt_name="query")
-        
-    return embeddings.flatten()
+    @override
+    def encode(self, content: str) -> np.ndarray:
+        return self.model.encode(content)

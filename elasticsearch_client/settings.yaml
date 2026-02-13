@@ -19,3 +19,7 @@ chunk_agent_model:
 
 settings:
   max_document_length: 4096
+
+text_encoder:
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+  provider: "SentenceTransformer"

@@ -46,3 +46,7 @@ class AppSettings:
                                                                 settings_dict["chunk_agent_model"].get("api_key", None))
 
     MAX_DOCUMENT_LENGTH: int = int(settings_dict.get("max_document_length", os.getenv("MAX_DOCUMENT_LENGTH", "4096")))
+
+    # Text encoder
+    TEXTENCODER_MODELNAME: str = settings_dict["text_encoder"]["model"]
+    TEXTENCODER_PROVIDER: str = settings_dict["text_encoder"]["provider"]
