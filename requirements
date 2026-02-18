@@ -8,3 +8,5 @@ langchain[openai]
 langchain-tavily
 pyyaml
 loguru
+pillow
+pytesseract

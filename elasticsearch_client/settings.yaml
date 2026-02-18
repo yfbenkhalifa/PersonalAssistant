@@ -2,8 +2,7 @@ elasticsearch_settings:
   host: "http://localhost"
   port: 9200
   username: "elastic"
-  api_key: "cGVRU1Rad0JPaGhNN1NkSUZEdzQ6b0Qxb0NxN2FjTTdBanptd1NCckhGUQ=="
-  password: "15VgI4IGtua4EbW2iJp6"
+  api_key: "eHg5cVhwd0JJOWFqYU9JekVmVWg6Umtla0lrOXNhamN1RjZYREl0OWdwZw=="
 
 text_embedding_model:
   hf_id: "Qwen/Qwen3-Embedding-8B"
