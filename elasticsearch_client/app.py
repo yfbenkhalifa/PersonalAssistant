@@ -18,8 +18,11 @@ app = FastAPI(
 )
 
 # Initialize Elasticsearch client
-es_client = ElasticSearchClient(host=settings.ELASTICSEARCH_HOST, port=settings.ELASTICSEARCH_PORT,
-                                user=settings.ELASTICSEARCH_USERNAME, api_key=settings.ELASTICSEARCH_API_KEY)
+try: 
+    es_client = ElasticSearchClient(host=settings.ELASTICSEARCH_HOST, port=settings.ELASTICSEARCH_PORT,
+                                    user=settings.ELASTICSEARCH_USERNAME, api_key=settings.ELASTICSEARCH_API_KEY)
+except Exception as e:
+    logger.error(f"Failed to create ES client: {e}")
 
 try:
     text_encoder = SentenceTransformerTextEncoder(settings.TEXTENCODER_MODELNAME)
