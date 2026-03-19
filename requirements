@@ -10,3 +10,4 @@ pyyaml
 loguru
 pillow
 pytesseract
+python-dotenv

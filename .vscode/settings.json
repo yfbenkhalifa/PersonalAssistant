@@ -4,5 +4,10 @@
     "python-envs.pythonProjects": [],
     "python.analysis.extraPaths": [
         "./document_indexer/clients"
-    ]
+    ],
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

@@ -8,10 +8,10 @@ from langchain_core.messages import (
     BaseMessage
 )
 import uuid
-
+from langchain.agents.middleware import dynamic_prompt, ModelRequest
 from agents.enums import LLM_MODEL, LLM_PROVIDER
 
-class LlmConfig:
+class AgentConfig:
     def __init__(self, host: str, model: LLM_MODEL, temperature: float, provider: LLM_PROVIDER):
         self.host = host
         self.model = model
@@ -28,7 +28,7 @@ class LlmConfig:
             raise ValueError("Temperature must be between 0 and 1")
         self._temperature = value
     
-class AzureOpenAiModelConfig(LlmConfig):
+class AzureOpenAiModelConfig(AgentConfig):
     def __init__(self, host, model, temperature, provider, api_version: str, api_key: str):
         super().__init__(host, model, temperature, provider)
         self.provider = LLM_PROVIDER.AZURE_OPENAI
@@ -37,12 +37,14 @@ class AzureOpenAiModelConfig(LlmConfig):
         
     
 class Agent:
-    def __init__(self,llm_config: LlmConfig):
+    def __init__(self,llm_config: AgentConfig, system_prompt: str = None):
         self.agent_id = uuid.uuid4()
         memory = MemorySaver()
         self.model = self.init_llm_model(llm_config)
         self.tools = []
         self.agent = create_agent(self.model, self.tools, checkpointer=memory)
+        if system_prompt:
+            self.set_system_prompt(system_prompt)
         self.history = []
     
     def invoke(self, message: BaseMessage) -> BaseMessage:
@@ -53,9 +55,13 @@ class Agent:
         response = self.history[-1]
         return response
     
+    @classmethod
     def add_tool(self, tool: Callable) -> None:
-        
         pass
+
+    @classmethod
+    def set_system_prompt(self, prompt: str) -> None:
+        self.system_prompt = prompt
     
     @staticmethod
     def init_azure_openai_model(llm_config: AzureOpenAiModelConfig) -> BaseChatModel:
@@ -73,7 +79,7 @@ class Agent:
     
     
     @staticmethod
-    def init_llm_model(llm_config: LlmConfig) -> BaseChatModel:
+    def init_llm_model(llm_config: AgentConfig) -> BaseChatModel:
         if llm_config.provider == LLM_PROVIDER.AZURE_OPENAI:
             from langchain_openai import AzureChatOpenAI
             

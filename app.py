@@ -1,9 +1,18 @@
-from agents.agent import Agent, AzureOpenAiModelConfig, LlmConfig
+import sys
+from pathlib import Path
+
+# Add src folder to Python path for imports
+src_path = Path(__file__).parent / "src"
+sys.path.insert(0, str(src_path))
+
+from agents.agent import Agent, AzureOpenAiModelConfig, AgentConfig
 from agents.enums import LLM_MODEL, LLM_PROVIDER
 from langchain_core.messages import HumanMessage
 import yaml
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def load_config(config_path: str = "config.yaml") -> dict:
     """Load configuration from YAML file."""
@@ -14,19 +23,20 @@ def load_config(config_path: str = "config.yaml") -> dict:
         return yaml.safe_load(f)
 
 
-def create_llm_config_from_yaml(config: dict) -> LlmConfig:
+def create_llm_config_from_yaml(config: dict) -> AgentConfig:
     """Create LlmConfig from YAML configuration."""
     llm_cfg = config['model']
     provider=LLM_PROVIDER[llm_cfg['provider']]
     if provider == LLM_PROVIDER.AZURE_OPENAI: 
-        return AzureOpenAiModelConfig(host=llm_cfg['host'],
+        return AzureOpenAiModelConfig(
+            host=os.getenv("AZURE_OPENAI_ENDPOINT"),
             model=LLM_MODEL[llm_cfg['model']],
             temperature=llm_cfg['temperature'],
             provider=provider,
-            api_key=llm_cfg['apiKey'] if llm_cfg['apiKey'] is not None else '',
+            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
             api_version=llm_cfg['apiVersion'] if llm_cfg['apiVersion'] is not None else ''
         )
-    return LlmConfig(
+    return AgentConfig(
         host=llm_cfg['host'],
         model=LLM_MODEL[llm_cfg['model']],
         temperature=llm_cfg['temperature'],
