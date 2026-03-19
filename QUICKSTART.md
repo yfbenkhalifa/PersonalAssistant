@@ -1,6 +1,53 @@
 # Personal Assistant - Quick Start Guide
 
-## 🚀 Getting Started in 3 Steps
+## 🚀 Getting Started (Docker - Recommended)
+
+### The Fastest Way - Docker Compose
+
+```bash
+# 1. Set up environment
+cp .env.example .env
+# Edit .env and add your Azure OpenAI credentials
+
+# 2. Start everything with one command
+./start.sh --build
+```
+
+That's it! Access at:
+- 🌐 **Frontend:** http://localhost:8080
+- 🔧 **Backend API:** http://localhost:8000
+- 📖 **API Docs:** http://localhost:8000/docs
+
+To stop: `./stop.sh` or `docker compose down`
+
+---
+
+## 🐳 Docker Options
+
+### Start services
+```bash
+./start.sh              # Start normally
+./start.sh --build      # Rebuild and start
+./start.sh -b -d        # Rebuild and run in background
+```
+
+### Manual Docker commands
+```bash
+# Build both images
+docker compose build
+
+# Start all services
+docker compose up
+
+# View logs
+docker compose logs -f
+```
+
+See [DOCKER.md](DOCKER.md) for comprehensive Docker documentation.
+
+---
+
+## 💻 Local Development (Without Docker)
 
 ### 1. Start the Backend
 
@@ -12,8 +59,11 @@ cd /home/wiz/Dev/PersonalAssistant
 cp .env.example .env
 # Edit .env and add your API credentials
 
+# Install dependencies
+pip install -r requirements
+
 # Start the API server
-python server/chat_api.py
+uvicorn server.chat_api:app --reload --port 8000
 ```
 
 Backend will run on: http://localhost:8000
@@ -34,17 +84,21 @@ cp .env.example .env
 npm run dev
 ```
 
-Frontend will run on: http://localhost:3000
+Frontend will run on: http://localhost:5173
 
 ### 3. Open Your Browser
 
-Navigate to: http://localhost:3000
+Navigate to: http://localhost:5173
 
 Start chatting with your Personal Assistant! 🎉
 
-## 📚 Full Documentation
+---
 
-See [frontend/README.md](frontend/README.md) for complete documentation.
+## 📚 Additional Documentation
+
+- [DOCKER.md](DOCKER.md) - Complete Docker guide
+- [frontend/README.md](frontend/README.md) - Frontend documentation
+- [server/README.md](server/README.md) - Backend documentation
 
 ## 🔧 Configuration
 

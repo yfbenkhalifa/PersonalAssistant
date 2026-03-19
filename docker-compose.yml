@@ -1,0 +1,52 @@
+services:
+  # Backend API Server
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: personal-assistant-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    volumes:
+      # Mount for hot reload during development
+      - ./server:/app/server
+      - ./src:/app/src
+      - ./chatbot:/app/chatbot
+      - ./prompts:/app/prompts
+      - ./elasticsearch_client:/app/elasticsearch_client
+      - ./documents:/app/documents
+      - ./config.yaml:/app/config.yaml
+      - ./appsettings.json:/app/appsettings.json
+    networks:
+      - personal-assistant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Web Interface
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: personal-assistant-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - personal-assistant-network
+    restart: unless-stopped
+    environment:
+      - API_URL=http://backend:8000
+
+networks:
+  personal-assistant-network:
+    driver: bridge

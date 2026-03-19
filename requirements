@@ -11,3 +11,4 @@ loguru
 pillow
 pytesseract
 python-dotenv
+requests

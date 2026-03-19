@@ -56,7 +56,7 @@ const ChatInterface = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="h-full flex flex-col glass-morphism-strong rounded-3xl shadow-2xl overflow-hidden glow-effect hover-lift border border-white/30">
       {/* Messages Container */}
       <MessageList messages={messages} isLoading={isLoading} />
       

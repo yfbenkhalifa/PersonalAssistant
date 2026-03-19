@@ -35,23 +35,23 @@ const MessageInput = ({ onSend, disabled }) => {
   }
 
   return (
-    <div className="border-t border-gray-200 p-4 bg-gray-50">
-      <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+    <div className="border-t border-gray-200/50 p-6 bg-gradient-to-br from-gray-50/50 to-white/50 backdrop-blur-sm">
+      <form onSubmit={handleSubmit} className="flex gap-3 items-end">
         <textarea
           ref={textareaRef}
           value={input}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          placeholder="Type your message... (Shift+Enter for new line)"
+          placeholder="✨ Type your message... (Shift+Enter for new line)"
           disabled={disabled}
           rows={1}
-          className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="flex-1 resize-none rounded-2xl border-2 border-gray-200 px-5 py-4 focus:outline-none focus:ring-4 focus:ring-indigo-200 focus:border-indigo-400 disabled:bg-gray-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg bg-white font-medium"
           style={{ maxHeight: '200px' }}
         />
         <button
           type="submit"
           disabled={disabled || !input.trim()}
-          className="flex-shrink-0 bg-blue-500 text-white rounded-lg px-4 py-3 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="flex-shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl px-6 py-4 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
         >
           <Send className="w-5 h-5" />
         </button>
