@@ -12,8 +12,10 @@ class LLM_MODEL(Enum):
     MISTRAL_1 = "mistral-1"
     LLAMA_2 = "llama-2"
     MPT_30B = "mpt-30b"
+    GEMMA34B = "google/gemma-3-4b"
     
 class LLM_PROVIDER(Enum):
     OPENAI = "openai"
     CLAUDE = "claude"
     AZURE_OPENAI = "azure_openai"
+    LMSTUDIO = "lmstudio"

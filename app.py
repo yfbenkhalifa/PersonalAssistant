@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage
 import yaml
 import os
 from dotenv import load_dotenv
-
+import random
 load_dotenv()
 
 def load_config(config_path: str = "config.yaml") -> dict:
@@ -23,25 +23,6 @@ def load_config(config_path: str = "config.yaml") -> dict:
         return yaml.safe_load(f)
 
 
-def create_llm_config_from_yaml(config: dict) -> AgentConfig:
-    """Create LlmConfig from YAML configuration."""
-    llm_cfg = config['model']
-    provider=LLM_PROVIDER[llm_cfg['provider']]
-    if provider == LLM_PROVIDER.AZURE_OPENAI: 
-        return AzureOpenAiModelConfig(
-            host=os.getenv("AZURE_OPENAI_ENDPOINT"),
-            model=LLM_MODEL[llm_cfg['model']],
-            temperature=llm_cfg['temperature'],
-            provider=provider,
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            api_version=llm_cfg['apiVersion'] if llm_cfg['apiVersion'] is not None else ''
-        )
-    return AgentConfig(
-        host=llm_cfg['host'],
-        model=LLM_MODEL[llm_cfg['model']],
-        temperature=llm_cfg['temperature'],
-        provider=provider
-    )
 
 
 def main():

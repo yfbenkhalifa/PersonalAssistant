@@ -30,7 +30,7 @@ FastAPI-based backend server for the Personal Assistant application.
 
 1. **Install dependencies:**
    ```bash
-   pip install -r ../requirements
+   pip install -r ../requirements.txt
    ```
 
 2. **Set environment variables:**

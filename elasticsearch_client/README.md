@@ -19,7 +19,7 @@ A FastAPI-based service for indexing and searching documents in Elasticsearch.
 
 1. Install dependencies:
 ```bash
-pip install -r requirements
+pip install -r requirements.txt
 ```
 
 2. Set environment variables (optional):

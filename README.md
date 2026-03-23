@@ -90,7 +90,7 @@ docker compose logs -f
 
 **Backend:**
 ```bash
-pip install -r requirements
+pip install -r requirements.txt
 uvicorn server.chat_api:app --reload --port 8000
 ```
 

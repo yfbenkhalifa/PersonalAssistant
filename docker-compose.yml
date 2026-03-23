@@ -20,7 +20,6 @@ services:
       - ./elasticsearch_client:/app/elasticsearch_client
       - ./documents:/app/documents
       - ./config.yaml:/app/config.yaml
-      - ./appsettings.json:/app/appsettings.json
     networks:
       - personal-assistant-network
     restart: unless-stopped

@@ -4,7 +4,6 @@ Provides REST and WebSocket endpoints for the chat interface
 """
 import sys
 from pathlib import Path
-
 # Add src folder to Python path
 src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
@@ -17,8 +16,9 @@ from datetime import datetime
 import json
 import os
 from dotenv import load_dotenv
+import logging
 
-from agents.agent import Agent, AzureOpenAiModelConfig, AgentConfig
+from agents.agent import Agent, AzureOpenAiModelConfig, AgentConfig, create_llm_config_from_yaml
 from agents.enums import LLM_MODEL, LLM_PROVIDER
 from langchain_core.messages import HumanMessage, AIMessage
 import yaml
@@ -26,6 +26,8 @@ import yaml
 # Load environment variables
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class ChatMessage(BaseModel):
     """Chat message model"""
@@ -72,41 +74,20 @@ def load_config(config_path: str = "config.yaml") -> dict:
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
-
-def create_agent() -> Agent:
-    """Create and initialize the Agent"""
-    config = load_config()
-    llm_cfg = config['model']
-    provider = LLM_PROVIDER[llm_cfg['provider']]
-    
-    if provider == LLM_PROVIDER.AZURE_OPENAI:
-        agent_config = AzureOpenAiModelConfig(
-            host=os.getenv("AZURE_OPENAI_ENDPOINT"),
-            model=LLM_MODEL[llm_cfg['model']],
-            temperature=llm_cfg['temperature'],
-            provider=provider,
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            api_version=llm_cfg.get('apiVersion', '2024-12-01-preview')
-        )
-    else:
-        agent_config = AgentConfig(
-            host=llm_cfg['host'],
-            model=LLM_MODEL[llm_cfg['model']],
-            temperature=llm_cfg['temperature'],
-            provider=provider
-        )
-    
-    return Agent(agent_config)
-
-
 # Store active agents per session (in production, use Redis or similar)
 agents = {}
 
+def create_agent(config_path = "config.yaml") -> Agent:
+    """Create and initialize the Agent"""
+    config = load_config(config_path)
+    agent_config = create_llm_config_from_yaml(config)
+    return Agent(agent_config)
 
 def get_or_create_agent(conversation_id: str) -> Agent:
     """Get existing agent or create new one for conversation"""
     if conversation_id not in agents:
-        agents[conversation_id] = create_agent()
+        new_agent = create_agent()
+        agents[new_agent.nickname] = new_agent
     return agents[conversation_id]
 
 
@@ -129,7 +110,11 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "active_agents": {
+            "count": len(agents),
+            "conversation_ids": list(agents.keys())
+        }
     }
 
 
@@ -176,7 +161,6 @@ async def websocket_chat(websocket: WebSocket, conversation_id: str):
     
     try:
         while True:
-            # Receive message from client
             data = await websocket.receive_text()
             message_data = json.loads(data)
             user_message = message_data.get("message", "")
@@ -218,6 +202,8 @@ async def websocket_chat(websocket: WebSocket, conversation_id: str):
 
 if __name__ == "__main__":
     import uvicorn
+    starting_agent = create_agent()
+    agents[starting_agent.nickname] = starting_agent
     uvicorn.run(
         "chat_api:app",
         host="0.0.0.0",

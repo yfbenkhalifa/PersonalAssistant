@@ -5,7 +5,6 @@ from elasticsearch.helpers import bulk
 from typing import List, Dict, Any, Optional, Union
 from loguru import logger
 import numpy as np
-from exceptions.serverExceptions import ServerException
 
 
 class ElasticSearchClient:

@@ -12,10 +12,7 @@ from chatbot.tools import (
     search_indexed_documents
 )
 from langchain_core.messages import SystemMessage
-
-from prompts.agent_prompts import AgentPrompts
 from elasticsearch_client.clients.elasticsearch_client import ElasticSearchClient
-from exceptions.serverExceptions import ServerException
 from elasticsearch_client.appSettings import AppSettings
 
 llm = init_chat_model(

@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
-COPY ../requirements /app/requirements.txt
+# Copy requirements.txt file
+COPY ../requirements.txt /app/requirements.txt
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt.txt
 
 # Copy the entire project (needed for imports)
 COPY .. /app/

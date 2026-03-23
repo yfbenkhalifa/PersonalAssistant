@@ -60,7 +60,7 @@ cp .env.example .env
 # Edit .env and add your API credentials
 
 # Install dependencies
-pip install -r requirements
+pip install -r requirements.txt
 
 # Start the API server
 uvicorn server.chat_api:app --reload --port 8000
