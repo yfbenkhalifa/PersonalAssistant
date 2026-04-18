@@ -1,216 +1,70 @@
-# 🤖 Personal Assistant
+# Personal Assistant
 
-An intelligent AI-powered personal assistant with a stunning visual interface, built with FastAPI, LangChain, and React.
+A monorepo for an AI-powered personal assistant with document search, chat,
+and a React web UI.
 
-![Personal Assistant](https://img.shields.io/badge/Python-3.12-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green)
-![React](https://img.shields.io/badge/React-18-61dafb)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ed)
-
-## ✨ Features
-
-- 🎨 **Stunning UI** - Glassmorphism design with animated gradients and floating particles
-- 🧠 **AI-Powered** - LangChain + LangGraph with Azure OpenAI integration
-- ⚡ **Real-time Chat** - REST and WebSocket support
-- 🔍 **Document Search** - Elasticsearch integration for indexed document queries
-- 🐳 **Docker Ready** - Complete containerization with docker-compose
-- 🔄 **Hot Reload** - Development mode with automatic reloading
-- 📱 **Responsive** - Beautiful UI that works on all devices
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Docker & Docker Compose V2 installed
-- Azure OpenAI API credentials (or compatible OpenAI endpoint)
-
-### Get Running in 30 Seconds
-
-```bash
-# Clone and navigate
-cd PersonalAssistant
-
-# Set up environment
-cp .env.example .env
-nano .env  # Add your Azure OpenAI credentials
-
-# Start everything!
-./start.sh --build
-```
-
-Access at:
-- 🌐 Frontend: **http://localhost:8080**
-- 🔧 Backend API: **http://localhost:8000**
-- 📖 API Docs: **http://localhost:8000/docs**
-
-## 📦 What's Included
-
-### Backend (`/server`)
-- FastAPI server with LangChain/LangGraph
-- Agent-based conversational AI
-- Elasticsearch integration
-- REST + WebSocket endpoints
-- Comprehensive API documentation
-
-### Frontend (`/frontend`)
-- React 18 + Vite
-- Tailwind CSS with custom animations
-- Glassmorphism UI design
-- Real-time chat interface
-- Beautiful loading states and micro-interactions
-
-### Infrastructure
-- Docker containerization
-- Nginx reverse proxy
-- Multi-service orchestration
-- Development & production configurations
-
-## 🛠️ Development
-
-### Using Docker (Recommended)
-
-```bash
-# Start with hot reload
-./start.sh
-
-# Rebuild containers
-./start.sh --build
-
-# Run in background
-./start.sh -b -d
-
-# View logs
-docker compose logs -f
-
-# Stop services
-./stop.sh
-```
-
-### Local Development
-
-**Backend:**
-```bash
-pip install -r requirements.txt
-uvicorn server.chat_api:app --reload --port 8000
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## 📚 Documentation
-
-- [QUICKSTART.md](QUICKSTART.md) - Get started quickly
-- [DOCKER.md](DOCKER.md) - Complete Docker guide
-- [server/README.md](server/README.md) - Backend documentation
-- [frontend/README.md](frontend/README.md) - Frontend documentation
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   Frontend (React)                   │
-│  Port 8080 | Glassmorphism UI | Real-time Chat      │
-└────────────────────┬────────────────────────────────┘
-                     │ HTTP/WebSocket
-┌────────────────────▼────────────────────────────────┐
-│              Backend (FastAPI)                       │
-│  Port 8000 | LangChain | Agent System                │
-└────────────────────┬────────────────────────────────┘
-                     │
-        ┌────────────┴──────────────┐
-        │                           │
-┌───────▼────────┐        ┌────────▼─────────┐
-│  Azure OpenAI  │        │  Elasticsearch   │
-│   LLM Models   │        │ Document Search  │
-└────────────────┘        └──────────────────┘
-```
-
-## 🔧 Configuration
-
-### Environment Variables (`.env`)
-
-```bash
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_API_KEY=your-api-key
-
-# Environment
-ENVIRONMENT=development
-LOG_LEVEL=INFO
-```
-
-### Model Configuration (`config.yaml`)
-
-```yaml
-model:
-  model: "GPT_4O"
-  temperature: 0.7
-  provider: "AZURE_OPENAI"
-  apiVersion: "2024-12-01-preview"
-```
-
-## 🧪 Testing
-
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Test chat endpoint
-curl -X POST http://localhost:8000/api/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello!", "conversation_id": "test"}'
-```
-
-## 📊 Project Structure
+## Repository layout
 
 ```
 PersonalAssistant/
-├── server/              # FastAPI backend
-│   ├── chat_api.py      # Main API endpoints
-│   ├── Dockerfile       # Backend container
-│   └── README.md        # Backend docs
-├── frontend/            # React frontend
-│   ├── src/             # Source code
-│   ├── Dockerfile       # Frontend container
-│   └── README.md        # Frontend docs
-├── src/                 # Shared Python modules
-│   └── agents/          # Agent implementations
-├── chatbot/             # Chatbot logic
-├── elasticsearch_client/# Search client
-├── prompts/             # AI prompts
-├── docker-compose.yml   # Multi-service orchestration
-├── start.sh             # Quick start script
-└── stop.sh              # Stop script
+├── docker-compose.yml          # Orchestrates backend + frontend
+├── start.sh / stop.sh          # Convenience wrappers around docker compose
+├── .env.example                # Shared runtime environment variables
+├── infra/
+│   └── elasticsearch/          # 3-node Elasticsearch + Kibana dev stack
+├── notebooks/                  # Research / experimentation
+└── projects/
+    ├── personal-assistant-agent/         # LangChain/LangGraph agent + FastAPI
+    ├── personal-assistant-elasticsearch/ # Elasticsearch client + FastAPI
+    └── personal-assistant-frontend/      # React + Vite + Tailwind UI
 ```
 
-## 🎨 UI Highlights
+Each project under `projects/` is self-contained with its own `pyproject.toml`
+or `package.json`, tests, and Dockerfile.
 
-- **Animated Gradients** - Dynamic, shifting background colors
-- **Glassmorphism** - Frosted glass aesthetic with backdrop blur
-- **Floating Particles** - Ambient animated orbs for depth
-- **Smooth Animations** - Entrance effects and micro-interactions
-- **Gradient Buttons** - Modern, vibrant interactive elements
-- **Custom Shadows** - Multi-layered depth effects
+## Quick start
 
-## 🤝 Contributing
+See [`QUICKSTART.md`](./QUICKSTART.md).
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Projects
 
-## 📝 License
+| Project | Purpose | Docs |
+|---|---|---|
+| `personal-assistant-agent` | LangChain-based chat agent exposed over REST + WebSocket. | [README](libraries/personal-assistant-agent/README.md) |
+| `personal-assistant-elasticsearch` | Elasticsearch-backed document indexing and semantic search API. | [README](libraries/personal-assistant-elasticsearch/README.md) |
+| `personal-assistant-frontend` | React web client and reusable component library. | [README](libraries/personal-assistant-frontend/README.md) |
+| `infra/elasticsearch` | Local Elasticsearch + Kibana dev cluster. | [README](./infra/elasticsearch/README.md) |
 
-This project is licensed under the MIT License.
+## Development
 
-## 🙏 Acknowledgments
+Install the Python projects in editable mode (order matters because the agent
+has an optional dependency on the elasticsearch package):
 
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
-- AI powered by [LangChain](https://langchain.com/)
-- UI with [React](https://react.dev/) + [Tailwind CSS](https://tailwindcss.com/)
-- Icons by [Lucide](https://lucide.dev/)
+```bash
+pip install -e libraries/personal-assistant-elasticsearch
+pip install -e "projects/personal-assistant-agent[elasticsearch,dev]"
+```
 
----
+Run the test suites per-project:
 
-Made with ❤️ and ☕ by the Personal Assistant Team
+```bash
+(cd libraries/personal-assistant-agent && pytest)
+(cd libraries/personal-assistant-elasticsearch && pytest)
+(cd libraries/personal-assistant-frontend && npm install && npm run build)
+```
+
+## Running with Docker
+
+```bash
+cp .env.example .env            # fill in credentials
+./start.sh --build --detached   # build images and run in background
+```
+
+Once running:
+
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:8000
+- API docs: http://localhost:8000/docs
+
+Stop with `./stop.sh` or `docker compose down`.
+

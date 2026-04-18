@@ -1,125 +1,74 @@
-# Personal Assistant - Quick Start Guide
+# Quickstart
 
-## 🚀 Getting Started (Docker - Recommended)
+## 1. Prerequisites
 
-### The Fastest Way - Docker Compose
+- Docker + Docker Compose v2
+- (For local dev) Python 3.11+, Node.js 18+
+
+## 2. Configure secrets
 
 ```bash
-# 1. Set up environment
 cp .env.example .env
-# Edit .env and add your Azure OpenAI credentials
-
-# 2. Start everything with one command
-./start.sh --build
+# Edit .env and set AZURE_OPENAI_ENDPOINT / AZURE_OPENAI_API_KEY
+# (or point the agent at LM Studio via libraries/personal-assistant-agent/config.yaml)
 ```
 
-That's it! Access at:
-- 🌐 **Frontend:** http://localhost:8080
-- 🔧 **Backend API:** http://localhost:8000
-- 📖 **API Docs:** http://localhost:8000/docs
+## 3. Start everything in Docker
 
-To stop: `./stop.sh` or `docker compose down`
-
----
-
-## 🐳 Docker Options
-
-### Start services
 ```bash
-./start.sh              # Start normally
-./start.sh --build      # Rebuild and start
-./start.sh -b -d        # Rebuild and run in background
+./start.sh --build --detached
 ```
 
-### Manual Docker commands
+| Service  | URL                           |
+|----------|-------------------------------|
+| Frontend | http://localhost:8080         |
+| Backend  | http://localhost:8000         |
+| API docs | http://localhost:8000/docs    |
+
+Stop: `./stop.sh`
+
+## 4. Run pieces locally (without Docker)
+
+### Agent backend (FastAPI)
+
 ```bash
-# Build both images
-docker compose build
-
-# Start all services
-docker compose up
-
-# View logs
-docker compose logs -f
+pip install -e "projects/personal-assistant-agent[dev]"
+uvicorn personal_assistant_agent.api:app --reload --port 8000
 ```
 
-See [DOCKER.md](DOCKER.md) for comprehensive Docker documentation.
-
----
-
-## 💻 Local Development (Without Docker)
-
-### 1. Start the Backend
+Or use the interactive CLI:
 
 ```bash
-# From project root
-cd /home/wiz/Dev/PersonalAssistant
-
-# Set up environment
-cp .env.example .env
-# Edit .env and add your API credentials
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start the API server
-uvicorn server.chat_api:app --reload --port 8000
+personal-assistant-agent --config libraries/personal-assistant-agent/config.yaml
 ```
 
-Backend will run on: http://localhost:8000
-
-### 2. Start the Frontend
+### Elasticsearch API
 
 ```bash
-# Open new terminal
-cd /home/wiz/Dev/PersonalAssistant/frontend
+pip install -e "projects/personal-assistant-elasticsearch[dev]"
+uvicorn personal_assistant_elasticsearch.api:app --reload --port 8100
+```
 
-# Install dependencies (first time only)
+### Frontend (Vite dev server)
+
+```bash
+cd libraries/personal-assistant-frontend
 npm install
-
-# Copy environment file
-cp .env.example .env
-
-# Start dev server
 npm run dev
 ```
 
-Frontend will run on: http://localhost:5173
+### Local Elasticsearch cluster
 
-### 3. Open Your Browser
-
-Navigate to: http://localhost:5173
-
-Start chatting with your Personal Assistant! 🎉
-
----
-
-## 📚 Additional Documentation
-
-- [DOCKER.md](DOCKER.md) - Complete Docker guide
-- [frontend/README.md](frontend/README.md) - Frontend documentation
-- [server/README.md](server/README.md) - Backend documentation
-
-## 🔧 Configuration
-
-### Backend (`.env` in project root)
-```env
-AZURE_OPENAI_ENDPOINT=your-endpoint
-AZURE_OPENAI_API_KEY=your-key
+```bash
+cd infra/elasticsearch
+cp .env.example .env
+docker compose up -d
 ```
 
-### Frontend (`.env` in frontend/)
-```env
-VITE_API_URL=http://localhost:8000
-VITE_WS_URL=ws://localhost:8000
+## 5. Run tests
+
+```bash
+(cd libraries/personal-assistant-agent && pytest)
+(cd libraries/personal-assistant-elasticsearch && pytest)
 ```
 
-## 🐛 Issues?
-
-- **Backend not starting?** Check Python dependencies and .env file
-- **Frontend can't connect?** Ensure backend is running on port 8000
-- **Other issues?** Check the browser console for errors
-
----
-
-Need help? Check the full README in the frontend folder!

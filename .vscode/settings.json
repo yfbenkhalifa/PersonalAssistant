@@ -9,5 +9,17 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "github.copilot.chat.customOAIModels": {
+        "lmstudio": {
+            "name": "LM Studio",
+            "requiresAPIKey": false,
+            "url": "http://localhost:1234",
+            "toolCalling": true,
+            "vision": false,
+            "maxInputTokens": 32768,
+            "maxOutputTokens": 8192
+        }
+    }
+
 }

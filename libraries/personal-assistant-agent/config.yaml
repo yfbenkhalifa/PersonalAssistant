@@ -1,0 +1,7 @@
+model:
+  model: "google/gemma-3-4b"
+  host: "http://127.0.0.1:1234"
+  temperature: 0.7
+  provider: "LMSTUDIO"
+  apiVersion: ""
+

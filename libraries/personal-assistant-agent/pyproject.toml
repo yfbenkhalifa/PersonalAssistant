@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "personal-assistant-agent"
+version = "0.1.0"
+description = "Reusable LangChain-based agent package extracted from PersonalAssistant"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Personal Assistant Team" }]
+dependencies = [
+  "fastapi[standard]>=0.115,<1.0",
+  "langchain>=0.3.25,<0.4.0",
+  "langchain-core>=0.3.78,<1.0.0",
+  "langchain-openai>=0.3.35,<0.4.0",
+  "langgraph>=0.3.25,<1.1.0",
+  "python-dotenv>=1.0,<2.0",
+  "pyyaml>=6.0,<7.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<9.0"]
+elasticsearch = ["personal-assistant-elasticsearch"]
+
+[project.scripts]
+personal-assistant-agent = "personal_assistant_agent.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

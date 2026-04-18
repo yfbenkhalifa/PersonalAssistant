@@ -1,0 +1,25 @@
+elasticsearch_settings:
+  host: "http://localhost"
+  port: 9200
+  username: "elastic"
+  password: ""
+  api_key: ""
+
+chunk_agent_model:
+  host: "http://127.0.0.1"
+  port: 25000
+  api_key: ""
+
+text_encoder:
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+  provider: "SentenceTransformer"
+
+api_title: "Personal Assistant Elasticsearch API"
+api_description: "API for indexing and searching documents in Elasticsearch"
+api_version: "1.0.0"
+host: "0.0.0.0"
+port: 8100
+default_search_size: 10
+max_search_size: 100
+max_document_length: 4096
+
