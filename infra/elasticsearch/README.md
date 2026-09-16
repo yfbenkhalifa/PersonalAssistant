@@ -5,7 +5,7 @@ Local 3-node Elasticsearch cluster + Kibana for development.
 ## Usage
 
 ```bash
-cp .env.example .env          # edit passwords
+cp .env.example .env          # set strong passwords before starting
 docker compose up -d
 ```
 
@@ -17,4 +17,3 @@ Stop and remove volumes:
 ```bash
 docker compose down -v
 ```
-

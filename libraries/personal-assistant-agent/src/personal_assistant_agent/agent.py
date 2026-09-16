@@ -90,7 +90,9 @@ class Agent:
         if llm_config.host:
             extra_kwargs["base_url"] = llm_config.host
             if llm_config.provider == LLM_PROVIDER.LMSTUDIO:
-                extra_kwargs["api_key"] = os.getenv("LMSTUDIO_API_KEY", "lm-studio")
+                lmstudio_api_key = os.getenv("LMSTUDIO_API_KEY")
+                if lmstudio_api_key:
+                    extra_kwargs["api_key"] = lmstudio_api_key
 
         return init_chat_model(
             model=model_name,
@@ -132,7 +134,6 @@ def create_llm_config_from_yaml(config: Mapping[str, Any]) -> AgentConfig:
         temperature=llm_cfg["temperature"],
         provider=provider,
     )
-
 
 
 
