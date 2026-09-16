@@ -16,8 +16,8 @@ from personal_assistant_agent import Agent, AzureOpenAIModelConfig
 load_dotenv()
 
 pytestmark = pytest.mark.skipif(
-    not os.getenv("AZURE_OPENAI_API_KEY"),
-    reason="AZURE_OPENAI_API_KEY not set",
+    not os.getenv("AZURE_OPENAI_API_KEY") or not os.getenv("AZURE_OPENAI_ENDPOINT"),
+    reason="AZURE_OPENAI_API_KEY or AZURE_OPENAI_ENDPOINT not set",
 )
 
 
@@ -25,10 +25,7 @@ pytestmark = pytest.mark.skipif(
 def agent() -> Agent:
     config = AzureOpenAIModelConfig(
         nickname="test",
-        host=os.getenv(
-            "AZURE_OPENAI_ENDPOINT",
-            "https://yf-personal-swedencentral.services.ai.azure.com/api/projects/Personal",
-        ),
+        host=os.getenv("AZURE_OPENAI_ENDPOINT"),
         model="gpt-4o",
         temperature=0.1,
         api_version="2024-12-01-preview",
@@ -40,4 +37,3 @@ def agent() -> Agent:
 def test_agent_initialization(agent: Agent) -> None:
     assert agent is not None
     assert agent.nickname == "test"
-

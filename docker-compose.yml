@@ -9,7 +9,7 @@ services:
     environment:
       - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
-      - LMSTUDIO_API_KEY=${LMSTUDIO_API_KEY:-lm-studio}
+      - LMSTUDIO_API_KEY=${LMSTUDIO_API_KEY:-}
       - ENVIRONMENT=${ENVIRONMENT:-development}
     networks:
       - personal-assistant-network
@@ -39,4 +39,3 @@ services:
 networks:
   personal-assistant-network:
     driver: bridge
-
